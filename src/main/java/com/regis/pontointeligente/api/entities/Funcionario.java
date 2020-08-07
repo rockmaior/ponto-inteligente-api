@@ -75,7 +75,7 @@ public class Funcionario implements Serializable {
 		return cpf;
 	}
 
-	@Column(name = "valor_hora", nullable = false)
+	@Column(name = "valor_hora", nullable = true)
 	public BigDecimal getValorHora() {
 		return valorHora;
 	}
