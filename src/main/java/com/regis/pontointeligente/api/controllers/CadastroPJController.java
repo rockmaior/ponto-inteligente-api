@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mapping.AccessOptions.GetOptions.GetNulls;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -19,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.regis.pontointeligente.api.dtos.CadastroPJDto;
 import com.regis.pontointeligente.api.entities.Empresa;
 import com.regis.pontointeligente.api.entities.Funcionario;
+import com.regis.pontointeligente.api.enums.PerfilEnum;
 import com.regis.pontointeligente.api.response.Response;
 import com.regis.pontointeligente.api.services.EmpresaService;
 import com.regis.pontointeligente.api.services.FuncionarioService;
+import com.regis.pontointeligente.api.utils.PasswordUtils;
 
 @RestController
 @RequestMapping("/api/cadastrar-pj")
@@ -65,7 +68,7 @@ public class CadastroPJController {
 			result.getAllErrors().forEach(error -> response.getErrors().add(error.getDefaultMessage()));
 			return ResponseEntity.badRequest().body(response);
 		}
-		
+
 		this.empresaService.persistir(empresa);
 		funcionario.setEmpresa(empresa);
 		this.funcionarioService.persistir(funcionario);
@@ -75,28 +78,63 @@ public class CadastroPJController {
 
 	}
 
+	/**
+	 * Popula o DTO de cadastro com os dados do funcionario e empresa
+	 * 
+	 * @param funcionario
+	 * @return CadastroJDto
+	 */
 	private CadastroPJDto converterCadastroPJDto(Funcionario funcionario) {
-		// TODO Auto-generated method stub
-		return null;
+		CadastroPJDto cadastroPJDto = new CadastroPJDto();
+		cadastroPJDto.setId(funcionario.getId());
+		cadastroPJDto.setNome(funcionario.getNome());
+		cadastroPJDto.setEmail(funcionario.getEmail());
+		cadastroPJDto.setCpf(funcionario.getCpf());
+		cadastroPJDto.setRazaoSocial(funcionario.getEmpresa().getRazaoSocial());
+		cadastroPJDto.setCnpj(funcionario.getEmpresa().getCnpj());
+		return cadastroPJDto;
 	}
 
-	private Empresa converterDtoParaEmpresa(@Valid CadastroPJDto cadastroPJDto) {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * Converter dados do DTO para empresa
+	 * 
+	 * @param cadastroPJDto
+	 * @return Empresa
+	 */
+	private Empresa converterDtoParaEmpresa(CadastroPJDto cadastroPJDto) {
+		Empresa empresa = new Empresa();
+		empresa.setCnpj(cadastroPJDto.getCnpj());
+		empresa.setRazaoSocial(cadastroPJDto.getRazaoSocial());
+		return empresa;
 	}
 
-	private Funcionario converterDtoParaFuncionario(@Valid CadastroPJDto cadastroPJDto, BindingResult result) {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * Converter dados do DTO para funcionario
+	 * 
+	 * @param cadastroPJDto
+	 * @param result
+	 * @return Funcionario
+	 * @throws NoSuchAlgorithmException
+	 */
+
+	private Funcionario converterDtoParaFuncionario(CadastroPJDto cadastroPJDto, BindingResult result)
+			throws NoSuchAlgorithmException {
+		Funcionario funcionario = new Funcionario();
+		funcionario.setNome(cadastroPJDto.getNome());
+		funcionario.setEmail(cadastroPJDto.getEmail());
+		funcionario.setCpf(cadastroPJDto.getCpf());
+		funcionario.setPerfil(PerfilEnum.ROLE_ADMIN);
+		funcionario.setSenha(PasswordUtils.gerarBCrypt(cadastroPJDto.getSenha()));
+		return funcionario;
 	}
 
 	private void validarDadosExistentes(@Valid CadastroPJDto cadastroPJDto, BindingResult result) {
-		this.empresaService.buscarPorCnpj(cadastroPJDto.getCnpj()).ifPresent(emp -> 
-			result.addError(new ObjectError("empresa", "empresa ja esistente")));
-		this.funcionarioService.buscarPorCpf(cadastroPJDto.getCpf()).ifPresent(func ->
-			result.addError(new ObjectError("funcionario", "cpf ja existente")));
-		
-		this.funcionarioService.buscarPorEmail(cadastroPJDto.getEmail()).ifPresent(func -> 
-			result.addError(new ObjectError("funcionario", "Email ja existente")));
+		this.empresaService.buscarPorCnpj(cadastroPJDto.getCnpj())
+				.ifPresent(emp -> result.addError(new ObjectError("empresa", "empresa ja esistente")));
+		this.funcionarioService.buscarPorCpf(cadastroPJDto.getCpf())
+				.ifPresent(func -> result.addError(new ObjectError("funcionario", "cpf ja existente")));
+
+		this.funcionarioService.buscarPorEmail(cadastroPJDto.getEmail())
+				.ifPresent(func -> result.addError(new ObjectError("funcionario", "Email ja existente")));
 	}
 }
