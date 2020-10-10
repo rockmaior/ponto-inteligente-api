@@ -87,22 +87,22 @@ public class Funcionario implements Serializable {
 	}
 
 	@Column(name = "qtd_horas_trabalho_dia", nullable = true)
-	public float getQtdHorasTrabalhoDia() {
+	public Float getQtdHorasTrabalhoDia() {
 		return qtdHorasTrabalhoDia;
 	}
 
 	@Transient
-	public Optional<Float> qtdHorasTrabalhoDiaOpt() {
+	public Optional<Float> getQtdHorasTrabalhoDiaOpt() {
 		return Optional.ofNullable(qtdHorasTrabalhoDia);
 	}
 
 	@Column(name = "qtd_horas_almoco", nullable = false)
-	public float getQtdHorasAlmoco() {
+	public Float getQtdHorasAlmoco() {
 		return qtdHorasAlmoco;
 	}
 
 	@Transient
-	public Optional<Float> qtdHorasAlmocoOpt() {
+	public Optional<Float> getQtdHorasAlmocoOpt() {
 		return Optional.ofNullable(qtdHorasAlmoco);
 	}
 
